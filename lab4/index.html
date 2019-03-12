@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="interpolation.js"></script>
+  <script src="script.js"></script>
+  <script type="text/javascript">
+    var x1 = [];
+    var y1 = [];
+    var Plotly;
+    var lagrange;
+
+    function validate(){
+      if (isNaN(parseFloat(document.form.end.value)) || isNaN(parseFloat(document.form.y0.value))||isNaN(parseFloat(document.form.end.value)) || isNaN(parseFloat(document.form.accuracy.value))){
+        alert("wrong input, try again");
+        return true;
+      }else if ((parseFloat(document.form.end.value) - parseFloat(document.form.x0.value))/(parseFloat(document.form.accuracy.value)**(1/4)) > 100 && (parseFloat(document.form.accuracy.value) < 1 )) {
+        alert("too much points to draw, try smaller interval or different accuracy");
+        return true;
+      }else if ((parseFloat(document.form.end.value) - parseFloat(document.form.x0.value))/(parseFloat(document.form.accuracy.value)) > 100) {
+        alert("too much points to draw, try smaller interval or different accuracy");
+        return true;
+      }else {
+        plot();
+        return false;
+      }
+    }
+
+
+
+    function plot() {
+      runge = new Runge(parseFloat(document.form.x0.value), parseFloat(document.form.y0.value), parseFloat(document.form.end.value), parseFloat(document.form.accuracy.value), document.form.funcName.value);
+      x1 = runge.xs;
+      y1 = runge.ys;
+      var x2 = [];
+      var y2 = [];
+      var difference = (x1[x1.length - 1] - x1[0]) / 100;
+      lagrange = new Lagrange(x1[0], y1[0], x1[1], y1[1]);
+      if (x1.length > 2) {
+        var min_x = x1[0];
+        for (var i = 2; i < x1.length; i++) {
+          lagrange.addPoint(x1[i], y1[i]);
+        }
+        x2.push(min_x);
+        y2.push(lagrange.interpolate(min_x));
+        while (min_x < (x1[x1.length - 1])) {
+          min_x = min_x + difference;
+          if (min_x > (x1[x1.length - 1])){
+            min_x = (x1[x1.length - 1]);
+          }
+          x2.push(min_x);
+          y2.push(lagrange.interpolate(min_x));
+
+        }
+      }
+
+      Plotly.newPlot(TESTER, [{
+        x: x2,
+        y: y2
+      }], 0);
+
+      Plotly.plot(TESTER, [{
+        x: x1,
+        y: y1,
+        mode: 'markers',
+        name: 'entered points'
+      }]);
+
+      return false;
+    }
+
+    function plotFunc(funcName) {
+
+      var x = x1[0] - 0.2;
+      var difference = (x1[x1.length - 1] - x1[0]) / 50;
+      var x2 = [];
+      var y2 = [];
+      if (funcName == "sinx") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
+          x2.push(x);
+          y2.push(Math.sin(x));
+        }
+      }
+      if (funcName == "x^2") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
+          x2.push(x);
+          y2.push(x * x);
+        }
+      }
+      if (funcName == "cosx") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
+          x2.push(x);
+          y2.push(Math.cos(x));
+        }
+      }
+
+      Plotly.plot(TESTER, [{
+        x: x2,
+        y: y2,
+        name: funcName
+      }], 0);
+
+
+      return false;
+    }
+  </script>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Computational Mathematics: Runge-Kutta 4th order</h1>
+    <h1 id="head"></h1>
+  </div>
+  <div id="tester" class="graph" style="width:900px;height:560px;"></div>
+  <div class="input">
+    <form name="form" id="form" onsubmit="return validate();">
+      <input id="x0" type="text" name="x0" placeholder="input x0 value">
+      <input id="y0" type="text" name="y0" placeholder="input y0 value">
+      <input id="end" type="text" name="end" placeholder="input end x value">
+      <input id="accuracy" type="text" name="accuracy" placeholder="input accuracy value">
+      <select id="funcName" name="funcName">
+        <option value="sinx">sinx</option>
+        <option value="cosx">cosx</option>
+        <option value="x^2-2y">x^2-2y</option>
+        <option value="x^2">x^2</option>
+      </select>
+      <input class="submit" type="submit" name="submitButton" value=" DRAW ">
+    </form>
+  </div>
+  <div class="input">
+    <button onclick="plotFunc('sinx')">SINX</button>
+    <button onclick="plotFunc('cosx')">COSX</button>
+    <button onclick="plotFunc('x^2')">X^2</button>
+  </div>
+
+</body>
+<script>
+  TESTER = document.getElementById('tester');
+  Plotly.plot(TESTER, [{
+    x: [1, 2, 3, 4, 5],
+    y: [1, 2, 4, 8, 16]
+  }], {
+    margin: {
+      t: 0
+    }
+  }, {
+    showSendToCloud: true
+  });
+  console.log(Plotly.BUILD);
+</script>
+
+</html>

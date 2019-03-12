@@ -1,125 +1,154 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
-    <script type="text/javascript">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="script1.js"></script>
+  <script type="text/javascript">
     var x1 = [];
     var y1 = [];
+    var Plotly;
     var lagrange;
-    function bubbleSort(arr1, arr2){
+
+    function bubbleSort(arr1, arr2) {
       var sorted = false
-      while (!sorted){
+      while (!sorted) {
         sorted = true;
-        arr1.forEach(function (element, index, array){
+        arr1.forEach(function(element, index, array) {
           var element2;
-          if (element > array[index+1]) {
-            array[index] = array[index+1];
-            array[index+1] = element;
-            element2 = arr2[index]
-            arr2[index] = arr2[index+1];
-            arr2[index+1] = element2;
+          var temp;
+
+          if (element > array[index + 1]) {
+            temp = array[index];
+            array[index] = array[index + 1];
+            array[index + 1] = temp;
+            element2 = arr2[index];
+            arr2[index] = arr2[index + 1];
+            arr2[index + 1] = element2;
             sorted = false;
           }
-          });
+        });
       }
     }
+
     function plot() {
 
-      x1.push(document.form.x.value);
-      y1.push(document.form.y.value);
+      x1.push(parseFloat(document.form.x.value));
+      y1.push(parseFloat(document.form.y.value));
       var x2 = [];
       var y2 = [];
       bubbleSort(x1, y1);
-      if (x1.length == 2){
-          lagrange = new Lagrange(x1[0], y1[0], x1[1], y1[1]);
+      var difference = (x1[x1.length - 1] - x1[0])/50;
+      if (x1.length == 2) {
+        lagrange = new Lagrange(x1[0], y1[0], x1[1], y1[1]);
       }
-      if (x1.length > 2)
-      {
-        var min_x = x1[0]-0.2;
+      if (x1.length > 2) {
+        var min_x = x1[0] - 0.2;
         lagrange.addPoint(document.form.x.value, document.form.y.value);
         x2.push(min_x);
-        y2.push(lagrange.valueOf(min_x));
-        while (min_x <= x1[x1.length - 1]){
-          min_x = min_x + 0.2;
+        y2.push(lagrange.interpolate(min_x));
+        while (min_x <= x1[x1.length - 1]) {
+          min_x = min_x + difference;
           x2.push(min_x);
-          y2.push(lagrange.valueOf(min_x));
+          y2.push(lagrange.interpolate(min_x));
 
         }
       }
 
       Plotly.newPlot(TESTER, [{
-      x: x2,
-      y: y2 }], 0);
+        x: x2,
+        y: y2
+      }], 0);
 
       Plotly.plot(TESTER, [{
-      x: x1,
-      y: y1, mode:'markers' }]);
+        x: x1,
+        y: y1,
+        mode: 'markers',
+        name: 'entered points'
+      }]);
 
       return false;
     }
-    function plotFunc() {
 
-      var func = (document.getElementById("func").value);
-      alert(func);
-      var x = x1[0]-1;
+    function plotFunc(funcName) {
+
+      var x = x1[0] - 0.2;
+      var difference = (x1[x1.length - 1] - x1[0])/50;
       var x2 = [];
       var y2 = [];
-      if (func = "sin"){
-        while (x <= x1[x1.length - 1]){
-          x = x + 0.2;
+      if (funcName == "sinx") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
           x2.push(x);
           y2.push(Math.sin(x));
         }
       }
+      if (funcName == "x^2") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
+          x2.push(x);
+          y2.push(x*x);
+        }
+      }
+      if (funcName == "cosx") {
+        alert(funcName);
+        while (x <= x1[x1.length - 1]) {
+          x = x + difference;
+          x2.push(x);
+          y2.push(Math.cos(x));
+        }
+      }
 
-      Plotly.Plot(TESTER, [{
-      x: x2,
-      y: y2 }], 0);
+      Plotly.plot(TESTER, [{
+        x: x2,
+        y: y2,
+        name: funcName
+      }], 0);
 
 
       return false;
     }
-
-
-    </script>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Computational Mathematics: Interpolation using Lagrange</h1>
-      <h1 id="head" ></h1>
-    </div>
-    <div id="tester" class="graph" style="width:900px;height:600px;"></div>
-    <div class="input">
-      <form name = "form" id= "form" onsubmit="return plot();">
-        <input id="x" type="text" name="x" placeholder="input x value">
-        <input id="y" type="text" name="y" placeholder="input y value">
-        <input class="submit" type="submit" name="submitButton" value=" Add point ">
-      </form>
-    </div>
-    <div class="input">
-      <form name = "func" id= "func" onsubmit="return plotFunc();">
-        <select size="1" name="funcType">
-           <option selected disabled>Выберите функцию</option>
-           <option value="sin">sinx</option>
-           <option value="sqrt">sqrt(x)</option>
-           <option value="x2">x^2</option>
-           <option value="something long">something long</option>
-        </select>
-        <input class="submit" type="submit" name="submitButton" value=" Draw function ">
-      </form>
-    </div>
-
-  </body>
-  <script>
-    TESTER = document.getElementById('tester');
-    Plotly.plot( TESTER, [{
-    x: [1, 2, 3, 4, 5],
-    y: [1, 2, 4, 8, 16] }], {
-    margin: { t: 0 } }, {showSendToCloud:true} );
-    console.log( Plotly.BUILD );
   </script>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Computational Mathematics: Interpolation using Lagrange</h1>
+    <h1 id="head"></h1>
+  </div>
+  <div id="tester" class="graph" style="width:900px;height:560px;"></div>
+  <div class="input">
+    <form name="form" id="form" onsubmit="return plot();">
+      <input id="x" type="text" name="x" placeholder="input x value">
+      <input id="y" type="text" name="y" placeholder="input y value">
+      <input class="submit" type="submit" name="submitButton" value=" Add point ">
+    </form>
+  </div>
+  <div class="input">
+    <button onclick="plotFunc('sinx')">SINX</button>
+    <button onclick="plotFunc('cosx')">COSX</button>
+    <button onclick="plotFunc('x^2')">X^2</button>
+  </div>
+
+</body>
+<script>
+  TESTER = document.getElementById('tester');
+  Plotly.plot(TESTER, [{
+    x: [1, 2, 3, 4, 5],
+    y: [1, 2, 4, 8, 16]
+  }], {
+    margin: {
+      t: 0
+    }
+  }, {
+    showSendToCloud: true
+  });
+  console.log(Plotly.BUILD);
+</script>
+
 </html>
